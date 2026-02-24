@@ -1,0 +1,25 @@
+# Especificaciones Técnicas del Agente Qwen Architect
+
+## 1. `list_files(directory)`
+**Descripción:** Lista los archivos y carpetas dentro del workspace del agente.
+**Uso recomendado:** Cuando necesites explorar la estructura del workspace o identificar archivos disponibles para operaciones posteriores.
+
+## 2. `read_file(file_path)`
+**Descripción:** Lee el contenido de un archivo de texto dentro del workspace.
+**Uso recomendado:** Para obtener el contenido de archivos ya existentes, como código fuente, configuraciones o documentos de referencia, antes de procesarlos o analizarlos.
+
+## 3. `write_file(file_path, content)`
+**Descripción:** Crea o sobreescribe un archivo con el contenido proporcionado.
+**Uso recomendado:** Para generar nuevos archivos de código, configuraciones o documentos dentro del workspace, asegurándote de que el contenido sea consistente y correctamente formateado.
+
+## 4. `create_artifact(filename, content)`
+**Descripción:** Crea un artefacto oficial que aparecerá en la pestaña 'Artifacts' de la interfaz del ADK.
+**Uso recomendado:** Ideal para entregar resultados finales, código o resúmenes estructurados, ya que estos artefactos son visibles para el usuario final en la interfaz.
+
+## 5. `web_search(query)`
+**Descripción:** Realiza una búsqueda web local usando DuckDuckGo.
+**Uso recomendado:** Cuando necesites obtener información actualizada o datos externos no disponibles en el workspace local, como estándares técnicos, documentación o noticias relevantes.
+
+## 6. `get_tool_info()`
+**Descripción:** Muestra esta guía de ayuda técnica.
+**Uso recomendado:** Para obtener una visión general de las herramientas disponibles y su funcionamiento, útil en momentos de consulta inicial o cuando se requiere una revisión de capacidades.

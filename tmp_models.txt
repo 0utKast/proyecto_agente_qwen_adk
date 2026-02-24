@@ -1,0 +1,10 @@
+NAME                       ID              SIZE      MODIFIED   
+llama3.1:latest            46e0c10c039e    4.9 GB    2 days ago    
+qwen2.5-coder:latest       dae161e27b0e    4.7 GB    2 days ago    
+qwen3-coder:latest         06c1097efce0    18 GB     2 days ago    
+qwen3:latest               500a1f067a9f    5.2 GB    2 days ago    
+qwen3:14b                  bdbd181c33f2    9.3 GB    3 days ago    
+qwen3-vl:latest            901cae732162    6.1 GB    4 days ago    
+llama3.2:latest            a80c4f17acd5    2.0 GB    4 days ago    
+nomic-embed-text:latest    0a109f422b47    274 MB    6 days ago    
+qwen2.5:14b                7cdf5a0187d5    9.0 GB    6 days ago    
