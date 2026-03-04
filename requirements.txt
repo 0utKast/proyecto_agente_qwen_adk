@@ -1,0 +1,29 @@
+# ========================================================
+# requirements.txt — Proyecto Agente Qwen ADK
+# (Rama: feature/whatsapp-bridge)
+# ========================================================
+#
+# Para instalar:
+#   source venv/bin/activate
+#   pip install -r requirements.txt
+#
+# ── Core ADK y LLM ───────────────────────────────────────
+google-adk
+litellm
+
+# ── Agent tools ──────────────────────────────────────────
+duckduckgo-search
+beautifulsoup4
+requests
+pydantic
+pydantic-settings
+
+# ── Notion / Google Calendar ─────────────────────────────
+notion-client
+google-auth
+google-api-python-client
+
+# ── WhatsApp Bridge (feature/whatsapp-bridge) ────────────
+fastapi
+uvicorn[standard]
+twilio
