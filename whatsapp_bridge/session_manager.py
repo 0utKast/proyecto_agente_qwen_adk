@@ -26,7 +26,7 @@ class WhatsAppSessionManager:
     """
 
     def __init__(self):
-        # Dict: phone_number (str) → {"session_id": str, "created_at": datetime, "message_count": int}
+        # Dict: phone_number (str) → {"session_id": str, "profile": str, "created_at": datetime, "message_count": int}
         self._sessions: dict[str, dict] = {}
         self._lock = threading.Lock()
 
@@ -34,35 +34,54 @@ class WhatsAppSessionManager:
         """Elimina el prefijo 'whatsapp:' y espacios para usar como clave limpia."""
         return phone.strip().replace("whatsapp:", "").replace("+", "").replace(" ", "")
 
-    def get_or_create(self, phone: str) -> str:
+    def get_or_create(self, phone: str, default_profile: str = "arquitecto") -> tuple[str, str]:
         """
-        Devuelve el session_id asociado al número de teléfono.
-        Si no existe, crea uno nuevo.
+        Devuelve el (session_id, profile) asociado al número de teléfono.
 
         Args:
             phone: Número con prefijo whatsapp:, ej: whatsapp:+34600123456
+            default_profile: Perfil a usar si la sesión es nueva.
 
         Returns:
-            session_id: Cadena utilizable en LocalADKAgent.run(session_id=...)
+            (session_id, profile)
         """
         normalized = self._normalize_phone(phone)
 
         with self._lock:
             if normalized not in self._sessions:
-                # Creamos un session_id descriptivo: wa_<número>
                 session_id = f"wa_{normalized}"
                 self._sessions[normalized] = {
                     "session_id": session_id,
+                    "profile": default_profile,
                     "phone_raw": phone,
                     "created_at": datetime.now(),
                     "message_count": 0,
                 }
-                logger.info(f"[Sessions] Nueva sesión creada para {phone}: {session_id}")
+                logger.info(f"[Sessions] Nueva sesión ({default_profile}) para {phone}: {session_id}")
             else:
-                logger.debug(f"[Sessions] Sesión reutilizada para {phone}: {self._sessions[normalized]['session_id']}")
+                logger.debug(f"[Sessions] Sesión reutilizada para {phone}")
 
             self._sessions[normalized]["message_count"] += 1
-            return self._sessions[normalized]["session_id"]
+            s = self._sessions[normalized]
+            return s["session_id"], s["profile"]
+
+    def set_profile(self, phone: str, profile: str):
+        """Cambia el perfil del agente para el número de teléfono dado."""
+        normalized = self._normalize_phone(phone)
+        with self._lock:
+            if normalized in self._sessions:
+                self._sessions[normalized]["profile"] = profile
+                logger.info(f"[Sessions] Perfil cambiado a '{profile}' para {phone}")
+            else:
+                # Si no existe, la creamos con ese perfil
+                session_id = f"wa_{normalized}"
+                self._sessions[normalized] = {
+                    "session_id": session_id,
+                    "profile": profile,
+                    "phone_raw": phone,
+                    "created_at": datetime.now(),
+                    "message_count": 0,
+                }
 
     def get_stats(self) -> dict:
         """Devuelve estadísticas de las sesiones activas (útil para /health)."""

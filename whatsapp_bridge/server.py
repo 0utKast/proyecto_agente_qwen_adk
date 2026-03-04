@@ -93,27 +93,81 @@ async def health():
 async def process_and_reply(from_number: str, user_text: str):
     """
     Tarea en background:
-    1. Obtiene/crea la sesión ADK del usuario
-    2. Lanza el agente
-    3. Envía la respuesta de vuelta por WhatsApp
+    1. Maneja comandos especiales (/agent, /help, /status)
+    2. Obtiene/crea la sesión ADK del usuario con su perfil activo
+    3. Lanza el agente
+    4. Envía la respuesta de vuelta por WhatsApp
     """
-    session_id = session_manager.get_or_create(from_number)
-    logger.info(f"[Bridge] Procesando mensaje de {from_number} (sesión: {session_id})")
+    text = user_text.strip()
+    
+    # --- Lógica de Comandos ---
+    if text.startswith("/"):
+        parts = text.split()
+        cmd = parts[0].lower()
+        
+        if cmd == "/help":
+            help_text = (
+                "🤖 *Comandos disponibles:*\n\n"
+                "• `/agent <nombre>`: Cambia el perfil del agente.\n"
+                "• `/status`: Muestra el perfil actual y sesión.\n"
+                "• `/help`: Muestra este mensaje.\n\n"
+                "*Agentes disponibles:*\n"
+                "• `arquitecto` (por defecto)\n"
+                "• `coder` (experto programador)\n"
+                "• `researcher-bot` (búsqueda web)\n"
+                "• `quality-bot` (QA y seguridad)"
+            )
+            await twilio_client.send_text(to=from_number, body=help_text)
+            return
+
+        if cmd == "/agent":
+            if len(parts) < 2:
+                await twilio_client.send_text(to=from_number, body="⚠️ Uso: `/agent <nombre>` (ej: `/agent coder`)")
+                return
+            
+            new_profile = parts[1].lower()
+            valid_profiles = ["arquitecto", "coder", "researcher-bot", "quality-bot"]
+            
+            if new_profile in valid_profiles:
+                session_manager.set_profile(from_number, new_profile)
+                await twilio_client.send_text(
+                    to=from_number, 
+                    body=f"✅ Perfil cambiado a: *{new_profile}*\nAhora responderá el bot especializado."
+                )
+            else:
+                await twilio_client.send_text(
+                    to=from_number, 
+                    body=f"❌ Perfil '{new_profile}' no reconocido.\nUsa `/help` para ver la lista."
+                )
+            return
+
+        if cmd == "/status":
+            sid, profile = session_manager.get_or_create(from_number)
+            status_text = f"📊 *Estado:*\n• Perfil: `{profile}`\n• Sesión: `{sid}`"
+            await twilio_client.send_text(to=from_number, body=status_text)
+            return
+
+    # --- Procesamiento Normal (Agente ADK) ---
+    session_id, profile = session_manager.get_or_create(
+        from_number, 
+        default_profile=bridge_settings.WHATSAPP_AGENT_PROFILE
+    )
+    logger.info(f"[Bridge] Petición de {from_number} para agente '{profile}' (sesión: {session_id})")
 
     try:
         AgentClass = get_agent_class()
-        agent = AgentClass(profile=bridge_settings.WHATSAPP_AGENT_PROFILE)
-        response = await agent.run(user_text, session_id=session_id)
+        agent = AgentClass(profile=profile)
+        response = await agent.run(text, session_id=session_id)
         logger.info(f"[Bridge] Respuesta del agente ({len(response)} chars)")
     except Exception as e:
         logger.error(f"[Bridge] Error del agente: {e}", exc_info=True)
-        response = f"⚠️ Lo siento, hubo un error interno procesando tu mensaje:\n{str(e)}"
+        response = f"⚠️ Error interno en agente '{profile}':\n{str(e)}"
 
-    # Enviar respuesta de vuelta al usuario por WhatsApp
+    # Enviar respuesta de vuelta
     try:
         await twilio_client.send_text(to=from_number, body=response)
     except Exception as e:
-        logger.error(f"[Twilio] Error al enviar respuesta a {from_number}: {e}", exc_info=True)
+        logger.error(f"[Twilio] Error al enviar a {from_number}: {e}")
 
 
 # ── Webhook principal ────────────────────────────────────────────────────────
