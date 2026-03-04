@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Databases
+*.db
+*.sqlite
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+
+# ADK
+.adk/
+
+# Logs and temp files
+*.log
+raw_tool_call_output.txt
+tmp_models.txt
+template.txt
